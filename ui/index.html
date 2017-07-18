@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="/semantic/dist/semantic.min.css">
+    <!-- <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../../favicon.ico"> -->
+    <style>
+    body {
+        overflow: hidden;
+    }
+
+    .item.active {
+        border-bottom: 4px solid steelblue;
+        background-color: #FFF;
+    }
+    </style>
+    <title>Multivariate Time-Series Analysis</title>
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="/semantic/dist/semantic.min.js"></script>
+  </head>
+  <body>
+      <div class="ui top menu" id="page-header" style="margin:0;">
+        <div class="item">
+          <h2 style="color: steelblue;">CODES-VIS</h2>
+
+        </div>
+        <a class="item"><i class="sun icon"></i>Network Exploration</a>
+        <a class="item active"><i class="area chart icon"></i>Time-Series Analysis</a>
+      </div>
+      <div id="page-main">
+
+      </div>
+
+          <!-- <div class="ui modal">
+            <div class="header">
+              Upload Time-Series Dataset
+            </div>
+            <div class="content" style="text-align:center;">
+                <div class="ui primary center labeled icon button">
+                    Open Files<i class="folder open icon"></i>
+                </div>
+            </div>
+            <div class="actions">
+              <div class="ui positive disabled right labeled icon button">
+                Start Explore and Analyze
+                <i class="chevron right icon"></i>
+              </div>
+            </div>
+          </div> -->
+
+
+    <script src="npm/requirejs/require.js"></script>
+    <script>
+        require(["main", "vastui/layout", "vastui/panel"], function(main){
+
+            $("#page-main").css("height", $("body").height() - $('#page-header').height() - 10);
+            main('page-main');
+
+        })
+
+    </script>
+
+  </body>
+</html>
