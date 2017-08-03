@@ -17,20 +17,30 @@
         border-bottom: 4px solid steelblue;
         background-color: #FFF;
     }
+
+    .selected.item  {
+        border: 1px solid steelblue!important;
+    }
+
+
     </style>
-    <title>Multivariate Time-Series Analysis</title>
+    <title>CODES-VIS</title>
     <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
     <script src="http://d3js.org/d3.v3.min.js"></script>
-    <script src="/semantic/dist/semantic.min.js"></script>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+    <script src="npm/requirejs/require.js"></script>
+    <script src="/semantic/dist/semantic.js"></script>
   </head>
   <body>
-      <div class="ui top menu" id="page-header" style="margin:0;">
+      <div class="ui top menu page-menu" id="page-header" style="margin:0;">
         <div class="item">
           <h2 style="color: steelblue;">CODES-VIS</h2>
 
         </div>
-        <a class="item"><i class="sun icon"></i>Network Exploration</a>
-        <a class="item active"><i class="area chart icon"></i>Time-Series Analysis</a>
+        <a class="item active" href="#stats"><i class="bar chart icon"></i>Statistical Analysis</a>
+        <a class="item" href="#network"><i class="sun icon"></i>Network Exploration</a>
+        <a class="item" href="#timeseries"><i class="line chart icon"></i>Time-Series Analysis</a>
       </div>
       <div id="page-main">
 
@@ -53,15 +63,39 @@
             </div>
           </div> -->
 
+        <script>
+        require.config({
+            paths: {
+                ace: ["//cdnjs.cloudflare.com/ajax/libs/ace/1.2.6"]
+             }
+        })
 
-    <script src="npm/requirejs/require.js"></script>
-    <script>
-        require(["main", "vastui/layout", "vastui/panel"], function(main){
+        require(["network/main", "stats/statistics", "timeseries/main"], function(network, stats, ts){
 
             $("#page-main").css("height", $("body").height() - $('#page-header').height() - 10);
-            main('page-main');
 
+
+            $(".page-menu > a.item").click(function(){
+                $(".page-menu > a.item.active").each(function(menuID,i){
+                    $(this).removeClass('active');
+                })
+                var mode = this.getAttribute('href').slice(1);
+                $('#page-main').html('')
+                if(mode == 'network') network();
+                if(mode == 'stats') stats('../data/testData');
+                if(mode == 'timeseries') ts('../data/testData');
+
+                console.log(mode);
+
+                // $('#page-secondary').hide();
+                $(this).addClass('active');
+                // $(this.getAttribute('href')).transition('fade left');
+            })
         })
+            // $('.colorPicker').dropdown();
+            // $('.ui.checkbox').checkbox();
+
+
 
     </script>
 

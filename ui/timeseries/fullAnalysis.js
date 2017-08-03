@@ -11,17 +11,17 @@ define(function(require) {
         lineChart = require('i2v/charts/lineChart'),
         format = require('i2v/format')('.2s'),
         hierCircles = require('./hierCircles'),
-        dragonfly = require('models/dragonfly'),
+        dragonfly = require('./dragonfly'),
         parallelCoordinates = require('i2v/charts/parallelCoordinate'),
         scatterPlot = require('i2v/charts/scatter');
 
     const ROUTER_PER_GROUP = 10,
         TERMINAL_PER_ROUTER = 5;
     return function() {
-        var Panel = require('vastui/panel'),
-            Button = require('vastui/button'),
-            Table = require('vastui/table'),
-            ProgressBar = require('vastui/progress');
+        var Panel = require('davi/panel'),
+            Button = require('davi/button'),
+            Table = require('davi/table'),
+            ProgressBar = require('davi/progress');
 
         var fileLoader = require('./fileloader'),
             adav = require('adav/adav');
@@ -220,8 +220,6 @@ define(function(require) {
                     size: result.terminal_id.length
 
                 });
-
-
 
                 var result = gpuMemCache.terminals
                 .resume('selectTimeRange')
@@ -582,7 +580,7 @@ define(function(require) {
             .match({
                 group_id: {$inRange: [0, 34]}
             })
-            .execute(aggr);
+            (aggr);
 
             var ds = dragonfly({
                 numRouter : 510,
@@ -617,7 +615,7 @@ define(function(require) {
                         color: "local_busy_time",
                         // size: "traffic"
                     },
-                    colors: ["#F5F5F5", "steelblue"]
+                    colors: ["steelblue", "red"]
                 },
                 {
                     entity: "terminal",

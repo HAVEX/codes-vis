@@ -1,0 +1,71 @@
+define(function(require){
+    const
+        aggregate = require('p4/dataopt/aggregate'),
+        arrays = require('p4/core/arrays'),
+        pipeline = require('p4/core/pipeline'),
+        chord = require('./chord'),
+        texts = require('./text'),
+        bars = require('./bars');
+
+    return function hcvis(spec) {
+        var layers = spec.layers;
+            layerTotal = layers.length,
+            rings = new Array(layerTotal);
+
+        var config = spec.config,
+            width = config.width || 800,
+            height = config.height || width,
+            padding = config.padding || 10,
+            outerRadius = config.outerRadius || Math.min(width/2, height/2),
+            innerRadius = config.innerRadius || Math.min(width/4, height/4),
+            container = config.container || "body";
+
+        outerRadius -= padding;
+
+        var cirRange = outerRadius - innerRadius - padding,
+            cirOffset = innerRadius,
+            sectionRadius = cirOffset,
+            cirSize = layers
+                .map(function(layer){ return layer.size; })
+                .reduce(function(a,b){return a+b;});
+
+        layers.forEach(function(s, si){
+            var sectionRadiusRange =  cirOffset + s.size / cirSize * cirRange,
+                cirPadding = 0.05 * sectionRadiusRange,
+                sectionRadius = 0.95 * sectionRadiusRange;
+
+            if(s.type == 'link') {
+                rings[si] = chord({
+                    container: container,
+                    data: s.data,
+                    width: width,
+                    height: height,
+                    colors: s.colors,
+                    radius: cirOffset,
+                    vmap: {
+                        size: 'traffic',
+                        color: 'sat_time'
+                    }
+                });
+                container = rings[si];
+            }
+            else if(s.type == 'bar') {
+                rings[si] = bars({
+                    container: container,
+                    data: s.data,
+                    innerRadius: cirOffset,
+                    outerRadius: sectionRadius,
+                    colors: s.colors,
+                    vmap: s.vmap || s.encoding,
+                });
+                cirOffset = sectionRadius + cirPadding;
+            } else if(s.type == 'text') {
+                s.container = container;
+                s.radius = cirOffset;
+                rings[si] = texts(s);
+                cirOffset = sectionRadius + cirPadding;
+            }
+        })
+        return rings;
+    }
+})

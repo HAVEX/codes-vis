@@ -1,0 +1,224 @@
+<div id="specUI" class="ui form" style=" padding: 20px;">
+  <div class="fields"  style="width: 100%; background: #EEE; padding: 20px;">
+    <div class="twelve wide field">
+      <label>Aggregate by</label>
+      <select class="ui search dropdown">
+        <option value="">Group Id</option>
+        <option value="1">Router Rank</option>
+      </select>
+    </div>
+    <div class="four wide field">
+      <label>BinMax</label>
+      <input type="number" value="7" disable="" >
+    </div>
+  </div>
+  <table class="ui very basic celled table" style="background: ">
+    <thead>
+      <tr>
+        <th width="125">Projection</th>
+        <th>Visual Encoding</th>
+        <th width="160">Color Schemes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          <div class="field">
+            <select class="ui fluid dropdown">
+              <option value="">local link</option>
+            </select>
+          </div>
+          <div class="ui checkbox">
+            <label>Aggregate</label>
+            <input type="checkbox" tabindex="0" class="hidden">
+          </div>
+
+        </td>
+        <td>
+          <div class="two fields">
+            <div class="field">
+              <label>Size</label>
+              <select class="ui fluid dropdown">
+                <option value="">traffic</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Color</label>
+              <select class="ui fluid dropdown">
+                <option value="">sat_time</option>
+              </select>
+            </div>
+          </div>
+        </td>
+        <td>
+            <div class="ui fluid selection dropdown colorPicker" style="padding:10px 4px;">
+              <i class="dropdown icon"></i>
+              <div class="default text" id="colorScheme1"></div>
+              <div class="menu">
+                <div class="item" data-value="jenny">
+                  <img class="ui mini image" src="../test.png">
+                </div>
+              </div>
+            </div>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <div class="field">
+            <select class="ui fluid dropdown">
+              <option value="">global link</option>
+            </select>
+          </div>
+          <div class="ui checkbox">
+            <label>Aggregate</label>
+            <input type="checkbox" tabindex="0" class="hidden">
+          </div>
+
+        </td>
+        <td>
+          <div class="two fields">
+            <div class="field">
+              <label>Size</label>
+              <select class="ui fluid dropdown">
+                <option value="">traffic</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Color</label>
+              <select class="ui fluid dropdown">
+                <option value="">sat_time</option>
+              </select>
+            </div>
+          </div>
+          <div class="two fields">
+            <div class="field">
+              <label>Angular (x)</label>
+              <select class="ui fluid dropdown">
+                <option value="">---</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Radial (y)</label>
+              <select class="ui fluid dropdown">
+                <option value="">---</option>
+              </select>
+            </div>
+          </div>
+        </td>
+        <td>
+          <div class="ui fluid selection dropdown colorPicker" style="padding:10px 4px;">
+            <i class="dropdown icon"></i>
+            <div class="default text" id="colorScheme2"></div>
+            <div class="menu">
+              <div class="item" data-value="jenny">
+
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <div class="field">
+            <select class="ui fluid dropdown">
+              <option value="">terminal</option>
+            </select>
+          </div>
+          <div class="ui checkbox">
+            <label>Aggregate</label>
+            <input type="checkbox" tabindex="0" class="hidden">
+          </div>
+
+        </td>
+        <td>
+          <div class="two fields">
+            <div class="field">
+              <label>Size</label>
+              <select class="ui fluid dropdown">
+                <option value=""> --- </option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Color</label>
+              <select class="ui fluid dropdown">
+                <option value="">sat_time</option>
+              </select>
+            </div>
+          </div>
+          <div class="two fields">
+            <div class="field">
+              <label>Angular (x)</label>
+              <select class="ui fluid dropdown">
+                <option value="">---</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Radial (y)</label>
+              <select class="ui fluid dropdown">
+                <option value="">---</option>
+              </select>
+            </div>
+          </div>
+        </td>
+        <td>
+          <div class="ui fluid selection dropdown colorPicker" style="padding:10px 4px;">
+            <i class="dropdown icon"></i>
+            <div class="default text" id="colorScheme3"></div>
+            <div class="menu">
+              <div class="item" data-value="jenny">
+                <img class="ui mini image" src="../test.png">
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <div class="field">
+            <select class="ui fluid dropdown">
+              <option value="">terminal</option>
+            </select>
+          </div>
+          <div class="ui checkbox">
+            <label>Aggregate</label>
+            <input type="checkbox" tabindex="0" class="hidden">
+          </div>
+
+        </td>
+        <td>
+          <div class="two fields">
+            <div class="field">
+              <label>Size</label>
+              <select class="ui fluid dropdown">
+                <option value="">avg_packet_latency</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Color</label>
+              <select class="ui fluid dropdown">
+                <option value="">job_id</option>
+              </select>
+            </div>
+          </div>
+          <div class="two fields">
+            <div class="field">
+              <label>Angular (x)</label>
+              <select class="ui fluid dropdown">
+                <option value="">avg_hops</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Radial (y)</label>
+              <select class="ui fluid dropdown">
+                <option value="">data_size</option>
+              </select>
+            </div>
+          </div>
+        </td>
+        <td>
+
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

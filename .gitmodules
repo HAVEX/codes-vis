@@ -1,0 +1,6 @@
+[submodule "p4"]
+	path = p4
+	url = https://github.com/jpkli/p4.git
+[submodule "davi"]
+	path = davi
+	url = https://github.com/jpkli/davi

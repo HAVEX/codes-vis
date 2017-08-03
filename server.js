@@ -11,30 +11,42 @@ var port = process.env.PORT || 8100,
 console.log("initializing server ");
 
 // ivastack libs
-var srcDir = {
-    vui: 'node_modules/davi/src',
+let libs = {
+    davi: 'davi/src',
     i2v: 'node_modules/i2v/src',
-    p4: 'node_modules/p4.js/src',
     flexgl : 'node_modules/flexgl/src',
-    adav : 'node_modules/p4.js/gl/src'
+    p4: 'p4/src',
+    adav : 'p4/gl/src'
 }
 
+let allowedFileTypes = ['js', 'html', 'css'];
+let analysisModes = ['stats', 'network', 'timeseries'];
+
+analysisModes.forEach((mode)=>{
+    app.get('/' + mode + '/:lib/*', (req, res, next)=>{
+        let lib = req.params.lib;
+        if(Object.keys(libs).indexOf(lib) !== -1 || lib =='npm') {
+            req.url = req.url.replace('/'+mode, '')
+        }
+
+        next();
+    });
+
+    app.use('/'+mode, express.static(mode));
+})
+
 // Static files
-app.use(express.static('ui'));
+Object.keys(libs).forEach(function(lib){
+    app.use('/'+lib, express.static(libs[lib]));
+})
+app.use("/semantic", express.static('semantic'));
 app.use("/data", express.static('data'));
 app.use("/models", express.static('models'));
 app.use("/npm", express.static('node_modules'));
-app.use("/vastui", express.static(srcDir.vui));
-app.use("/i2v", express.static(srcDir.i2v));
-app.use("/p4",  express.static(srcDir.p4));
-app.use("/flexgl",  express.static(srcDir.flexgl));
-app.use("/adav",  express.static(srcDir.adav));
-app.use("/semantic", express.static('semantic'));
+app.use(express.static('ui'));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
-
-
 
 server.listen(port, host, function(){
     console.log("server started, listening", host, port);

@@ -5,7 +5,7 @@ function(pipeline, printformat, p4Stats, Heatmap) {
         var data = option.data,
             width = option.width || 800,
             height = option.height || width,
-            padding = option.padding || 5,
+            padding = option.padding || 15,
             container = option.container || "body",
             vmap = option.vmap,
             structs = option.structs || [],
@@ -109,7 +109,8 @@ function(pipeline, printformat, p4Stats, Heatmap) {
           };
         }
 
-        var colorScale = d3.scale.linear().domain(linearDomain([colorDomain.min, colorDomain.max], structs[0].colors.length)).range(structs[0].colors);
+        var colorScale = d3.scale.linear().domain([colorDomain.min, colorDomain.max]).range(structs[0].colors);
+        //var colorScale = d3.scale.linear().domain(linearDomain([colorDomain.min, colorDomain.max], structs[0].colors.length)).range(structs[0].colors);
 
         if(typeof(structs[0].colorLegend) !== "undefined") structs[0].colorLegend.update([colorDomain.min, colorDomain.max], structs[0].colors);
 
@@ -148,8 +149,7 @@ function(pipeline, printformat, p4Stats, Heatmap) {
                             total_local_traffic: "$sum",
                             total_local_busy_time: "$sum",
                             group_id: "$addToArray"
-                        }).sortBy({router_rank: 1})
-                        .execute(data[d.index].data);
+                        }).sortBy({router_rank: 1})(data[d.index].data);
 
                         var delta = (d.endAngle - d.startAngle ) / entries.length;
                         entries.forEach(function(td, ti){
@@ -200,8 +200,7 @@ function(pipeline, printformat, p4Stats, Heatmap) {
                             busy_time: "$sum",
                             traffic: "$sum",
                             router_id: "$addToSet"
-                        }).sortBy({port: 1})
-                        .execute(data[d.index][s.entity+"s"]);
+                        }).sortBy({port: 1})(data[d.index][s.entity+"s"]);
 
                         var delta = (d.endAngle - d.startAngle ) / entries.length;
 
@@ -233,8 +232,7 @@ function(pipeline, printformat, p4Stats, Heatmap) {
                             packets_finished: "$sum",
                             avg_packet_latency: "$avg",
                             // workload: "$first"
-                        }).sortBy({router_rank: 1, router_port: 1})
-                        .execute(data[d.index].terminals);
+                        }).sortBy({router_rank: 1, router_port: 1})(data[d.index].terminals);
                         var delta = (d.endAngle - d.startAngle ) / entries.length;
 
                         entries.forEach(function(td, ti){
@@ -296,13 +294,12 @@ function(pipeline, printformat, p4Stats, Heatmap) {
                     return g.group_id;
                 });
                 hover(groups);
+
                     svg.selectAll(".chord path")
-                        .filter(function(a) {
-                            return a.source.index == d.source.index
-                            && d.target.index == a.target.index;
-                        })
-                        .transition()
+                        .filter(function(a) { return a.source.index == d.source.index && d.target.index == a.target.index; })
+                      .transition()
                         .style("fill", "yellow");
+
             });
             svg.append("g").selectAll("base")
                 .data(chord.groups)
@@ -335,22 +332,13 @@ function(pipeline, printformat, p4Stats, Heatmap) {
                 var terminalIDs;
 
                 if(s.entity == 'router') {
-                    terminalIDs = pipeline()
-                        .match({router_id: {$in: d.router_id}})
-                        .execute(data[d.pid].terminals)
-                        .map(function(t){return t.terminal_id});
+                    terminalIDs = pipeline().match({router_id: {$in: d.router_id}})(data[d.pid].terminals).map(function(t){return t.terminal_id});
                 } else {
                     if(Array.isArray(d.terminal_id))
                         terminalIDs = d.terminal_id;
                     else
                         if(!Array.isArray(d.router_id))
-                            terminalIDs = pipeline()
-                                .match({
-                                    router_rank: d.pid,
-                                    router_port: d.router_port
-                                })
-                                .execute(data[d.pid].terminals)
-                                .map(function(t){return t.terminal_id});
+                            terminalIDs = pipeline().match({router_rank: d.pid, router_port: d.router_port})(data[d.pid].terminals).map(function(t){return t.terminal_id});
                 }
                 // console.log(d);
                 hover({

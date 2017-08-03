@@ -1,10 +1,11 @@
 define(function(require) {
     // dependencies
     const p4gl = require('adav/adav');
-    const Layout = require('vastui/layout');
-    const Panel = require('vastui/panel');
+    const Layout = require('davi/layout');
+    const Panel = require('davi/panel');
+    const loadData = require('./loadData.js');
 
-    return function(data) {
+    function statsAnalysis(data) {
         var trispace = new Layout({
             margin: 10,
             container: 'page-main',
@@ -16,7 +17,7 @@ define(function(require) {
                 {
                     height: 0.5,
                     cols: [
-                        {id: 'local-links', width: 0.49},
+                        {id: 'local-links', width: 0.5},
                         {id: 'global-links', width: 0.5},
                     ]
                 },
@@ -83,7 +84,10 @@ define(function(require) {
             container: views.terminals.body,
             config: {
                 padding: {left: 100, right: 50, top: 30, bottom: 10},
-                viewport: [views.terminals.innerWidth*0.8, views.terminals.innerHeight*0.8]
+                viewport: [
+                  views.terminals.innerWidth*0.8,
+                  views.terminals.innerHeight*0.8
+                ]
             },
         })
         .visualize({
@@ -93,6 +97,15 @@ define(function(require) {
             color: 'teal',
             alpha: 0.25
         })
+    }
+
+    return function(dataset) {
+
+        loadData({
+            dataset: dataset,
+            localLinkPerRouter: 10,
+            globalLinkPerRouter: 5
+        }, statsAnalysis);
     }
 
 });

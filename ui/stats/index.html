@@ -32,7 +32,7 @@
         </div>
         <a class="item active"><i class="area chart icon"></i>Statistical Analysis</a>
 
-        <div style="margin: auto;">
+        <!-- <div style="margin: auto;">
             <select id = "select-dataset">
                 <option value="testing">testing</option>
                 <option value="">repro-10-cont-adaptive-bck0-p0-2966217-1499436143</option>
@@ -59,19 +59,20 @@
                 <option value="">repro-10-rand_rotr0-minimal-bck660-p1024-11862-1499828828</option>
                 <option value="">repro-10-rand_rotr0-minimal-bck660-p2048-65441-1499828873</option>
             </select>
-        </div>
+        </div> -->
       </div>
       <div id="page-main"></div>
-    <script src="npm/requirejs/require.js"></script>
+    <script src="/npm/requirejs/require.js"></script>
     <script>
         require(["test"], function(test){
             $("#page-main").css("height", $("body").height() - $('#page-header').height() - 10);
-            test('testData');
-            $("#select-dataset").change(function(){
-                var ds = $("#select-dataset option:selected").html();
-                $("#page-main").html('');
-                test(ds);
-            })
+            test('../data/testData');
+
+            // $("#select-dataset").change(function(){
+            //     var ds = $("#select-dataset option:selected").html();
+            //     $("#page-main").html('');
+            //     test(ds);
+            // })
         })
 
     </script>

@@ -62,7 +62,7 @@ define(function(require){
         });
 
         var projectionConfig = new Icon({
-            type: 'setting',
+            types: ['setting', 'large'],
             onclick: function() {
             }
         });

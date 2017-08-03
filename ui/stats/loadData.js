@@ -4,17 +4,18 @@ define(function(require){
         dataStruct = require('p4/core/datastruct'),
         cstore = require('p4/cquery/cstore');
 
-    const LOCAL_LINK_COUNT = 34,
-        GLOBAL_LINK_COUNT = 4;
-
     const TERMINAL_METRICS = ["lp_id", "terminal_id", "data_size", "avg_packet_latency", "packets_finished", "avg_hops", "busy_time"];
     const LINK_METRICS = ["group_id", "router_id", "port", "sat_time", "traffic"];
 
-    return function(dataset, callback) {
+    return function(args, callback) {
+        const DATASET = args.dataset,
+            LOCAL_LINK_COUNT = args.localLinkPerRouter,
+            GLOBAL_LINK_COUNT = args.globalLinkPerRouter;
+
         ajax.getAll([
-            {url: 'data/' + dataset + "/dragonfly-msg-stats", dataType: "text"},
-            {url: 'data/' + dataset + "/dragonfly-router-stats", dataType: "text"},
-            {url: 'data/' + dataset + "/dragonfly-router-traffic", dataType: "text"}
+            {url: DATASET + "/dragonfly-msg-stats", dataType: "text"},
+            {url: DATASET + "/dragonfly-router-stats", dataType: "text"},
+            {url: DATASET + "/dragonfly-router-traffic", dataType: "text"}
         ]).then(function(text){
 
             var terminals = dataStruct({
@@ -51,7 +52,6 @@ define(function(require){
                     link.traffic = traffic[li].local_traffic[bi];
                     // localLinks.push(link);
                     localLinks.push([l.group_id, l.router_id, bi, link.sat_time, link.traffic]);
-
                 });
 
                 l.global_busy_time.forEach(function(g, gi){
@@ -92,6 +92,7 @@ define(function(require){
                 keys: LINK_METRICS,
                 types: ["int", "int", "int", "float", "int"],
             })
+
             db.addRows(globalLinks);
             result.globalLinks = db.data();
             result.globalLinks.stats = db.stats();
