@@ -12,7 +12,9 @@
     "i2v": "^0.2.1",
     "jquery": "^3.2.1",
     "p4.js": "^0.2.0",
-    "requirejs": "^2.3.3"
+    "requirejs": "^2.3.3",
+    "requirejs-text": "^2.0.15",
+    "text": "github:requirejs/text"
   },
   "devDependencies": {},
   "scripts": {

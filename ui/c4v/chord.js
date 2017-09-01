@@ -1,5 +1,6 @@
 define(function(require){
-    const pipeline = require('p4/core/pipeline');
+    const pipeline = require('p4/core/pipeline'),
+        colorSchemes = require('i2v/colors');
 
     return function Chord(arg) {
         var options = arg || {},
@@ -42,10 +43,12 @@ define(function(require){
 
         if(typeof colors == 'string') {
             colorScale = function(d) {
-                var colorValue = (d - colorDomain[0]) / (colorDomain[1] - colorDomain[0]);
-                return d3['interpolate' + colors](colorValue);
-            }
+                var pos = d3.scale.linear()
+                    .domain([colorDomain[0], colorDomain[1]])
+                    .range([0, colorSchemes(colors).colors.length-1])(d);
 
+                return colorSchemes(colors).colors[Math.floor(pos)];
+            }
         } else {
             colorScale = d3.scale.linear()
                 .domain([colorDomain[0], colorDomain[1]])
@@ -79,6 +82,7 @@ define(function(require){
             .style("opacity", 1);
 
         chord.svg = svg;
+        chord.colorDomain = colorDomain;
         return chord;
     }
 })

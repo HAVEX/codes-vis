@@ -1,4 +1,5 @@
 define(function(require) {
+
     // dependencies
     var ajax = require('p4/io/ajax'),
         dsv = require('p4/io/parser'),
@@ -9,15 +10,16 @@ define(function(require) {
         cstore = require('p4/cquery/cstore'),
         colors = require('i2v/colors'),
         lineChart = require('i2v/charts/lineChart'),
-        format = require('i2v/format')('.2s'),
-        hierCircles = require('./hierCircles'),
-        dragonfly = require('./dragonfly'),
-        parallelCoordinates = require('i2v/charts/parallelCoordinate'),
-        scatterPlot = require('i2v/charts/scatter');
+        format = require('i2v/format')('.2s');
 
     const ROUTER_PER_GROUP = 10,
         TERMINAL_PER_ROUTER = 5;
-    return function() {
+
+    return function(arg) {
+        var eva = {},
+            options = arg || {},
+            container = options.container;
+
         var Panel = require('davi/panel'),
             Button = require('davi/button'),
             Table = require('davi/table'),
@@ -26,17 +28,7 @@ define(function(require) {
         var fileLoader = require('./fileloader'),
             adav = require('adav/adav');
 
-        var dataPanel = new Panel({
-            container: 'page-main',
-            id: "panel-data-upload",
-            title: "Upload Time-Series Data",
-            height: $('#page-main').height() * 0.6,
-            width: $('#page-main').width() * 0.8,
-            style: {textAlign: 'center'},
-            header: {height: 40, style: {borderBottom: '1px solid steelblue'}}
-        });
-
-        var ui = require('./layout/trispace')(),
+        var ui = require('./views')(container),
             views = ui.views;
 
         var timelinePlots = {};
@@ -65,8 +57,8 @@ define(function(require) {
             }
         })
 
-        ui.style.visibility = 'hidden';
-        dataPanel.style.margin = '50px auto';
+        // ui.style.visibility = 'hidden';
+        // dataPanel.style.margin = '50px auto';
         var fileList;
         var dataSet = {},
             gpuMemCache = {},
@@ -75,6 +67,15 @@ define(function(require) {
             startButton;
 
         var jobMapping = {};
+
+        fileList = new Table({
+            container: views.dataPanel.body,
+            // width: dataPanel.body * 0.8,
+            columns: ['File Name', 'Data Size', 'Number of Records', 'Progress / Status']
+        });
+
+        fileList.style.display = 'none';
+
 
         var fileUploadButton = new Button({
             label: ' Open Files ',
@@ -117,29 +118,26 @@ define(function(require) {
                     }
                 })
 
-                startButton = new Button({
-                    label: ' Start Explore and Analyze ',
-                    types: ['positive', 'right'],
-                    icon: 'chevron right',
-                    container: dataPanel.body,
-                    onclick: function() {
-                        dataPanel.style.display = 'none';
-                        ui.style.visibility = 'visible';
-                    }
-                });
-                startButton.style.margin = '20px';
-                startButton.showLoading();
+                // startButton = new Button({
+                //     label: ' Start Explore and Analyze ',
+                //     types: ['positive', 'right'],
+                //     icon: 'chevron right',
+                //     container: views.dataPanel.body,
+                //     onclick: function() {
+                //         views.dataPanel.style.display = 'none';
+                //     }
+                // });
+                // startButton.style.margin = '5px';
+                // startButton.showLoading();
             }},
         });
-        dataPanel.append(fileUploadButton);
-        fileList = new Table({
-            container: dataPanel.body,
-            width: dataPanel.body * 0.8,
-            columns: ['File Name', 'Data Size', 'Number of Records', 'Progress / Status']
-        });
+        fileUploadButton.style.margin = '5px';
+        views.dataPanel.append(fileUploadButton);
 
-        fileList.style.display = 'none';
-        fileUploadButton.style.margin = '20px';
+        eva.reset = function() {
+            views.dataPanel.style.display = 'block';
+            fileList.tbody.innerHTML = '';
+        }
 
         var terminal = {
             struct: {
@@ -171,10 +169,10 @@ define(function(require) {
                 console.log(data);
                 gpuMemCache.terminals = adav({
                     data: data,
-                    // container: 'detail-terminal',
+                    container: 'detail-terminal',
                     config: {
                         padding: {left: 50, right: 50, top: 30, bottom: 20},
-                        viewport: [views.detail.cell('detail-terminal').clientWidth - 100, views.detail.cell('detail-terminal').clientHeight - 50]
+                        viewport: [views.detail.cell('detail-terminal').clientWidth - 50, views.detail.cell('detail-terminal').clientHeight - 20]
                     }
                     // indexes: ["timestamp" , "terminal_id"]
                 });
@@ -193,33 +191,20 @@ define(function(require) {
                     totalDataSize: {$sum: "data_size"},
                     saturation: {$sum: "busy_time"}
                 })
+                .visualize({
+                    id: 'stat-plot',
+                    mark: "line",
+                    y: ["totalDataSize", "avgPacketLatency", "saturation", "terminal_id"],
+                    // x: "timestamp",
+                    // perceptual: true,
+                    color: 'teal',
+                    alpha: 0.1
+                })
                 .result();
 
                 result.group_id = result.terminal_id.map(function(d) { return Math.floor(d / TERMINAL_PER_ROUTER / ROUTER_PER_GROUP)});
 
                 var features = ['group_id', 'avgPacketLatency', 'saturation', 'totalDataSize', 'terminal_id'];
-                var dataMetrics = ['avg_packet_latency', 'avg_hops', 'busy_time', 'data_size', 'terminal_id'];
-                terminalMetrics = new parallelCoordinates({
-                    container: "detail-terminal",
-                    width:  views.multidimension.innerWidth,
-                    height:  views.multidimension.innerHeight * 0.5,
-                    padding: {left: 100, right: 70, top: 30, bottom: 40},
-                    features: features,
-                    axis: [1,1,1,1,1],
-                    color: 'teal',
-                    labels: {
-                        saturation: "sat. time",
-                        avgPacketLatency: 'packet latency',
-                        totalDataSize: 'traffic'
-                    },
-                    formats: {
-                        saturation: function(d){return format(d/1e9) + 's';},
-                        avgPacketLatency: function(d){return format(d/2/1e9/1000) + 's';}
-                    },
-                    data: result,
-                    size: result.terminal_id.length
-
-                });
 
                 var result = gpuMemCache.terminals
                 .resume('selectTimeRange')
@@ -266,7 +251,6 @@ define(function(require) {
                     terminalData[i] = timeStats.filter(function(d) { return d.feature == f;})
                 });
 
-
                 timelinePlots.terminalStat = new lineChart({
                     container: views.timeline.body,
                     padding: {left: 100, right: 40, top: 20, bottom: 40},
@@ -282,25 +266,6 @@ define(function(require) {
                     }
                 })
                 timelinePlots.terminalStat.hide();
-
-                // .visualize({
-                //     id: 'stat-plot',
-                //     mark: "line",
-                //     y: ["totalDataSize", "avgPacketLatency", "totalHopCount", "group_id"],
-                //     // x: "timestamp",
-                //     // perceptual: true,
-                //     color: 'teal',
-                //     alpha: 0.1
-                // })
-                // .visualize({
-                //     id: 'timelineplot',
-                //     mark: "line",
-                //     y: "totalDataSize",
-                //     x: "timestamp",
-                //     color: 'red',
-                //     // alpha: 0.1
-                // })
-
                 console.log("Time spent: ", new Date() - start);
                 // console.log(result);
             },
@@ -359,8 +324,9 @@ define(function(require) {
 
             visualize: function(data) {
 
-                var width = views.detail.cell('detail-router').clientWidth - 150,
-                    height = views.detail.cell('detail-router').clientHeight - 50;
+                var width = views.detail.cell('detail-router').clientWidth - 50,
+                    height = views.detail.cell('detail-router').clientHeight - 20;
+
                 gpuMemCache.routers = adav({
                     data: data,
                     container: 'detail-router',
@@ -370,14 +336,14 @@ define(function(require) {
                     },
                     views: [
                         {
-                            width: width/2 - 100,
+                            width: width/2 - 50,
                             height: height,
                             offset: [0, 0]
                         },
                         {
-                            width: width/2 - 100,
+                            width: width/2 - 50,
                             height: height,
-                            offset: [width/2+100, 0]
+                            offset: [width/2+50, 0]
                         }
                     ],
                 });
@@ -419,12 +385,6 @@ define(function(require) {
                         var routers = updateRouters(d.x);
                         console.log(routers);
 
-                        var selectedTerminals = new Float32Array(2550);
-                        var ids = [60,61,62,63,64,110,111,112,113,114,160,161,162,163,164,210,211,212,213, 214];
-                        ids.forEach(function(d, i){
-                            selectedTerminals[d] = 1;
-                        });
-                        terminalMetrics.select(selectedTerminals);
                     }
                 })
 
@@ -487,42 +447,6 @@ define(function(require) {
                     alpha: 0.5
                 })
 
-                gpuMemCache.routers
-                .update()
-                .head()
-                .filter({
-                    type: ['global', 'global'],
-                    router_id: [60, 64]
-                })
-                .aggregate({
-                    $group: ["link_id"],
-                    totalTraffic: {$sum: "traffic"},
-                    totalSaturation: {$sum: "saturation"},
-                })
-                .visualize({
-                    id: "detail-global-link",
-                    mark: "point",
-                    x: "totalTraffic",
-                    y: "totalSaturation",
-                    color: 'yellow',
-                })
-                .head()
-                .filter({
-                    type: ['local', 'local'],
-                    router_id: [60, 64]
-                })
-                .aggregate({
-                    $group: ["link_id"],
-                    totalTraffic: {$sum: "traffic"},
-                    totalSaturation: {$sum: "saturation"},
-                })
-                .visualize({
-                    id: "detail-local-link",
-                    mark: "point",
-                    x: "totalTraffic",
-                    y: "totalSaturation",
-                    color: 'yellow',
-                })
             }
         }
 
@@ -563,79 +487,14 @@ define(function(require) {
             .result('row');
 
             var routers = pipeline()
-            .group({
-                $by: 'router_id',
-                traffic: {totalTraffic: "$addToArray"},
-                busy_time: {totalSaturation: "$addToArray"}
+            .aggregate({
+                $group: 'router_id',
+                traffic: {$list: 'totalTraffic'},
+                busy_time: {$list: 'totalSaturation'}
             })
-            .derive(function(r, ri){
-                r.group_id = Math.floor(r.router_id / ROUTER_PER_GROUP);
-                r.router_id = r.router_id % ROUTER_PER_GROUP;
-                r.router_rank = r.router_id % ROUTER_PER_GROUP;
-                r.local_traffic = r.traffic.slice(0, ROUTER_PER_GROUP);
-                r.global_traffic = r.traffic.slice(ROUTER_PER_GROUP, ROUTER_PER_GROUP+r.traffic.length/4);
-                r.local_busy_time = r.busy_time.slice(0, ROUTER_PER_GROUP);
-                r.global_busy_time = r.busy_time.slice(ROUTER_PER_GROUP, ROUTER_PER_GROUP+r.traffic.length/4);
-            })
-            .match({
-                group_id: {$inRange: [0, 34]}
-            })
-            (aggr);
+            .execute(aggr);
 
-            var ds = dragonfly({
-                numRouter : 510,
-                numGroup  : 51,
-                numNode   : 2550,
-                routers: routers,
-                terminals: networkData.terminals
-            });
-
-            console.log(routers);
-
-            var result = ds.partition('group_id', 7);
-
-            var struct = [
-                {
-                    entity: "router",
-                    vmap: {
-                        color: "global_busy_time",
-                        size: "global_traffic"
-                    },
-                    groupLabel: true,
-                    partitionAttr: 'group_id',
-                    numPartition: 12,
-                    // colors: Colors("Oranges").colors,
-                    colors: ["#EEE", "purple"]
-                },
-
-                {
-                    entity: "router",
-                    aggregate: "router_rank",
-                    vmap: {
-                        color: "local_busy_time",
-                        // size: "traffic"
-                    },
-                    colors: ["steelblue", "red"]
-                },
-                {
-                    entity: "terminal",
-                    vmap: {
-                        color: "avg_packet_latency",
-                        size: "avg_hops"
-                    },
-                    aggregate: ['router_rank'],
-                    colors: ["#EEE", "teal"],
-                }
-            ]
-
-            views.projection.clear();
-            hierCircles({
-                container: "#panel-projection-body",
-                width: views.projection.innerWidth ,
-                structs: struct,
-                data: result
-            });
-            return result;
+            return routers;
         }
 
         function loadDataFromFile(file, fileId) {
@@ -670,17 +529,15 @@ define(function(require) {
                         data.stats = db.stats();
                         entity.visualize(data);
                         if(dataSet.hasOwnProperty('terminal') && dataSet.hasOwnProperty('router')) {
-                            startButton.hideLoading();
+                            // startButton.hideLoading();
+                            views.dataPanel.style.display = 'none';
                         }
-                        // analysis(data);
                     }
                 });
             }
         }
 
-        function analysis(data) {
-
-        }
+        return eva;
     }
 
 });

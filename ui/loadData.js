@@ -1,12 +1,7 @@
 define(function(require){
     const ajax = require('p4/io/ajax'),
         dsv = require('p4/io/parser'),
-        dataStruct = require('p4/core/datastruct'),
-        pipeline = require('p4/core/pipeline'),
-        join = require('p4/dataopt/join'),
-        arrays = require('p4/core/arrays'),
-        aggregate = require('p4/dataopt/aggregate'),
-        cstore = require('p4/cquery/cstore');
+        dataStruct = require('p4/core/datastruct');
 
     const TERMINAL_METRICS = ["lp_id", "terminal_id", "data_size", "avg_packet_latency", "packets_finished", "avg_hops", "sat_time"];
     const LINK_METRICS = ["group_id", "router_id", "router_port", "sat_time", "traffic"];
@@ -40,10 +35,12 @@ define(function(require){
                 {url: DATASET + "/dragonfly-router-traffic", dataType: "text"}
             ];
 
+        var numJobs = 1;
+
         if(args.hasOwnProperty('jobAllocation'))
             datafiles.push({url: DATASET + '/' +args.jobAllocation,dataType: "text"});
 
-        ajax.getAll(datafiles).then(function(text){
+        return ajax.getAll(datafiles).then(function(text){
 
             var terminals = dataStruct({
                 array: dsv(text[0], " "),
@@ -52,13 +49,13 @@ define(function(require){
                 skip: 1
             }).objectArray();
 
+            terminals.forEach(function(terminal){
+                terminal.job_id = -1;
+            })
+
             if(text.length > 3 && text[3].length) {
                 var jobs = text[3].split("\n").map(function(j){return j.split(" ")});
                 jobs.pop();
-
-                terminals.forEach(function(terminal){
-                    terminal.job_id = 'none';
-                })
 
                 jobs.forEach(function(job, jobId){
                     job.forEach(function(nodeId){
@@ -68,6 +65,8 @@ define(function(require){
                     })
 
                 });
+
+                numJobs = jobs.length;
             }
 
             var busytime = dataStruct({
@@ -111,49 +110,30 @@ define(function(require){
                     link.target_router = calcTargetRouter(link.group_id, link.router_rank, link.router_port);
                     globalLinks.push(link);
                 });
+            });
+
+            terminals.forEach(function(d) {
+                d.router_id = Math.floor(d.terminal_id/TERMINAL_PER_ROUTER);
+                d.router_rank = Math.floor(d.router_id/ROUTER_PER_GROUP);
+                d.router_port = d.terminal_id % TERMINAL_PER_ROUTER;
+                d.group_id = Math.floor(d.terminal_id/TERMINAL_PER_ROUTER/ROUTER_PER_GROUP);
+            });
+
+            if(typeof callback == 'function')
+                callback({
+                    globalLinks: globalLinks,
+                    localLinks: localLinks,
+                    terminals: terminals
+                });
+
+            return new Promise(function(resolve, reject) {
+                return resolve({
+                    globalLinks: globalLinks,
+                    localLinks: localLinks,
+                    terminals: terminals,
+                    numJobs: numJobs
+                });
             })
-
-            terminals = pipeline()
-                .derive(function(d) {
-                    d.router_id = Math.floor(d.terminal_id/TERMINAL_PER_ROUTER);
-                    d.router_rank = Math.floor(d.router_id/ROUTER_PER_GROUP);
-                    d.router_port = d.terminal_id % TERMINAL_PER_ROUTER;
-                    d.group_id = Math.floor(d.terminal_id/TERMINAL_PER_ROUTER/ROUTER_PER_GROUP);
-                })
-                .aggregate({
-                    $group: 'router_id',
-                    terminals: {$data: '*'},
-                })
-                .execute(terminals);
-
-            localLinks = pipeline().aggregate({
-                $group: 'router_id',
-                router_rank: {$first: 'router_rank'},
-                group_id: {$first: 'group_id'},
-                local_links: {$data: '*'}
-            })
-            .execute(localLinks);
-
-            globalLinks = pipeline().aggregate({
-                $group: 'router_id',
-                router_rank: {$first: 'router_rank'},
-                group_id: {$first: 'group_id'},
-                global_links: {$data: '*'}
-            })
-            .execute(globalLinks);
-
-            var routers = join(terminals, localLinks);
-            routers = join(routers, globalLinks);
-
-            routers.forEach(function(router, ri){
-                router.local_traffic = arrays.sum(router.local_links.map((d)=>(d.traffic)));
-                router.global_traffic = arrays.sum(router.global_links.map((d)=>(d.traffic)));
-                router.terminal_traffic = arrays.sum(router.terminals.map((d)=>(d.data_size)));
-                router.job_id = router.terminals[0].job_id;
-            })
-
-            console.log(routers);
-            callback(routers);
         })
     }
 })

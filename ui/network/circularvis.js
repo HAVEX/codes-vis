@@ -3,7 +3,7 @@ define(function(require) {
     const arrays = require('p4/core/arrays'),
         pipeline = require('p4/core/pipeline'),
         aggregate = require('p4/dataopt/aggregate'),
-        hcvis = require('./hcvis.js');
+        hcvis = require('../c4v/c4v');
 
     const METRICS = {
         global_links: {

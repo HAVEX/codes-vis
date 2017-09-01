@@ -6,70 +6,91 @@ define(function(require){
         ButtonGroup = require('davi/button-group'),
         ProgressBar = require('davi/progress');
 
-    return function() {
-        var trispace = new Layout({
+    return function(container) {
+        var cols  = new Layout({
             margin: 10,
-            container: 'page-main',
+            container: container,
             cols: [
                 {
-                    width: 0.42,
-                    rows: [
-                        {id: 'projectionView', width: 1.0},
-                    ]
+                    id: "col-left",
+                    width: 0.40,
                 },
                 {
-                    width: 0.58,
-                    rows: [
-                        {id: 'detailView', height: 0.72},
-                        {id: 'timelineView', height: 0.28},
-                        // {id: "controlView",height: 0.05},
-                    ]
+                    id: "col-right",
+                    width: 0.6,
                 },
             ]
         });
 
+        // var projectionView = new Layout({
+        //     margin: 0,
+        //     container: cols.cell('col-left'),
+        //     rows: [
+        //         { id: 'projectionView', height: 1.0},
+        //     ]
+        // })
+
+        var temporalView = new Layout({
+            margin: 0,
+            container: cols.cell('col-right'),
+            rows: [
+                { id: 'timelineView', height: 0.3},
+                { id: 'detailView', height: 0.7}
+            ]
+        })
+
         var views = {};
 
         views.multidimension = new Panel({
-            container: trispace.cell('detailView'),
+            container: temporalView.cell('detailView'),
             id: "panel-detail",
+            padding: 20,
             title: "Detail View",
             header: {height: 36, style: {backgroundColor: '#F4F4F4'}}
         });
 
         views.detail = new Layout({
-            margin: 10,
+            margin: 0,
             container: views.multidimension.body,
             rows: [
-                {id: 'detail-terminal', width: 0.5},
-                {id: 'detail-router', width: 0.5}
+                {id: 'detail-terminal', height: 0.5},
+                {id: 'detail-router', height: 0.5}
             ]
         });
 
+        views.dataPanel = new Panel({
+            container: temporalView.cell('timelineView'),
+            id: "panel-data-upload",
+            title: "Upload Time-Series Data",
+            style: {textAlign: 'center', overflow: 'scroll'},
+            header: {height: 36, style: {borderBottom: '1px solid steelblue'}}
+        });
+
         views.timeline = new Panel({
-            container: trispace.cell('timelineView'),
+            container: temporalView.cell('timelineView'),
             id: "panel-timeline",
             title: "Timeline View",
             header: {height: 36, style: {backgroundColor: '#F4F4F4'}}
         });
 
         views.projection = new Panel({
-            container: trispace.cell('projectionView'),
+            container: cols.cell('col-left'),
             id: "panel-projection",
             title: "Projection View",
+            // height: cols.cell('col-left').clientHeight + 4,
             padding: 20,
             header: {height: 36, style: {backgroundColor: '#F4F4F4'}}
         });
 
         var projectionConfig = new Icon({
-            type: 'setting',
+            types: ['setting', 'large'],
             onclick: function() {
             }
         });
 
         views.projection.header.append(projectionConfig);
 
-        trispace.views = views;
+        cols.views = views;
 
         var buttons = {};
         buttons.linkTraffic = new Button({
@@ -96,9 +117,10 @@ define(function(require){
             ]
         })
         views.timeline.header.append(buttons.timeline);
-        trispace.buttons = buttons;
+        cols.right = temporalView;
+        cols.buttons = buttons;
 
-        return trispace;
+        return cols;
     }
 
 })

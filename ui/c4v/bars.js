@@ -1,5 +1,6 @@
 define(function(require){
-    const getStats = require('p4/dataopt/stats');
+    const getStats = require('p4/dataopt/stats'),
+        colorSchemes = require('i2v/colors');
 
     return function Bars(arg) {
         var options = arg || {},
@@ -47,8 +48,11 @@ define(function(require){
 
             if(typeof colors == 'string') {
                 getColor = function(d) {
-                    var colorValue = (d - stats[vmap.color].min) / (stats[vmap.color].max - stats[vmap.color].min);
-                    return d3['interpolate' + colors](colorValue );
+                    var pos = d3.scale.linear()
+                        .domain([stats[vmap.color].min, stats[vmap.color].max])
+                        .range([0, colorSchemes(colors).colors.length-1])(d);
+
+                    return colorSchemes(colors).colors[Math.floor(pos)];
                 }
             } else {
                 getColor =  d3.scale.linear()
@@ -86,6 +90,7 @@ define(function(require){
         //     .style("stroke", '#fff')
         //     .style("stroke-width", 0.5);
         bars.svg = svg;
+        bars.colorDomain = [stats[vmap.color].min, stats[vmap.color].max];
         return bars;
     }
 })

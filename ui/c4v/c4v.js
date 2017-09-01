@@ -5,7 +5,9 @@ define(function(require){
         pipeline = require('p4/core/pipeline'),
         chord = require('./chord'),
         texts = require('./text'),
-        bars = require('./bars');
+        bars = require('./bars'),
+        stats = require('p4/dataopt/stats'),
+        colorLegend = require('./colorLegend');
 
     return function hcvis(spec) {
         var layers = spec.layers;
@@ -32,7 +34,8 @@ define(function(require){
         layers.forEach(function(s, si){
             var sectionRadiusRange =  cirOffset + s.size / cirSize * cirRange,
                 cirPadding = 0.05 * sectionRadiusRange,
-                sectionRadius = 0.95 * sectionRadiusRange;
+                sectionRadius = 0.95 * sectionRadiusRange,
+                colorDomain = ['min', 'max'];
 
             if(s.type == 'link') {
                 rings[si] = chord({
@@ -42,12 +45,10 @@ define(function(require){
                     height: height,
                     colors: s.colors,
                     radius: cirOffset,
-                    vmap: {
-                        size: 'traffic',
-                        color: 'sat_time'
-                    }
+                    vmap: s.vmap
                 });
                 container = rings[si];
+
             }
             else if(s.type == 'bar') {
                 rings[si] = bars({
@@ -65,6 +66,20 @@ define(function(require){
                 rings[si] = texts(s);
                 cirOffset = sectionRadius + cirPadding;
             }
+
+            if(s.type !== 'text' && s.vmap) {
+                if(rings[si].colorDomain) colorDomain = rings[si].colorDomain;
+                colorLegend({
+                    container: container,
+                    colors: s.colors,
+                    height: height / layers.length / 6 ,
+                    width: outerRadius / 2,
+                    title: s.project + ' (' + ((s.vmap) ? s.vmap.color : null) + ')',
+                    domain: colorDomain,
+                    pos: [outerRadius/2+ padding*4, padding*4 + outerRadius/2 + outerRadius/2 / (layers.length-1) * si]
+                })
+            }
+
         })
         return rings;
     }

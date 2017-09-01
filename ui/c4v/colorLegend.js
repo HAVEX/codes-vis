@@ -1,16 +1,23 @@
-define(['i2v/scale', 'i2v/svg', 'i2v/format', 'i2v/svg/axis'], function(Metric, Svg, printformat, Axis){
+define(function(require){
     'use strict';
     var gradID = 0;
+    const
+        Svg = require('i2v/svg-proto'),
+        Axis = require('i2v/svg/axis'),
+        printformat = require('i2v/format'),
+        colorSchemes = require('i2v/colors');
+
     return function colorLegend(arg){
         var mmts = {},
             option = arg || {},
-            width = option.width || 200,
-            height = option.height | 20,
-            padding = option.padding || {left: 0, right: 0, top: 0, bottom: 0},
-            vmap = option.vmap || {},
-            alpha = option.alpha || 0.2,
-            colors = option.colors || ['#0E0', 'yellow', 'red'],
             container = option.container || null,
+            width = option.width || 200,
+            height = option.height || 20,
+            pos = option.pos ||[0, 0],
+            padding = option.padding || {left: 20, right: 20, top: 20, bottom: 0},
+            vmap = option.vmap || {},
+            noLabel = option.nolabel || false,
+            colors = option.colors || ['#eee', 'steelblue'],
             domain = option.domain || ['min', 'max'],
             format = option.format || printformat(".2s");
 
@@ -19,7 +26,10 @@ define(['i2v/scale', 'i2v/svg', 'i2v/format', 'i2v/svg/axis'], function(Metric, 
         width -= padding.left + padding.right;
         height -= padding.top + padding.bottom;
 
-        var legend = Svg({width: width, height: height, padding: padding}),
+        if(typeof colors == 'string')
+            colors = colorSchemes(colors).colors;
+
+        var legend = (container === null) ? new Svg({width: width, height: height, padding: padding}) : container.svg,
             rect = legend.append("g");
 
         if(container !== null){
@@ -29,9 +39,7 @@ define(['i2v/scale', 'i2v/svg', 'i2v/format', 'i2v/svg/axis'], function(Metric, 
                 container.appendChild(legend);
             else if(typeof container === 'string')
                 document.getElementById(container).appendChild(legend);
-
         }
-
 
         function linearDomain(domain, n){
             var step = (domain[1] - domain[0])/(n-1),
@@ -61,7 +69,6 @@ define(['i2v/scale', 'i2v/svg', 'i2v/format', 'i2v/svg/axis'], function(Metric, 
                     .attr("stop-color", c);
             });
             return gradient;
-
         }
 
         var grad = linearGradient(colors);
@@ -69,25 +76,40 @@ define(['i2v/scale', 'i2v/svg', 'i2v/format', 'i2v/svg/axis'], function(Metric, 
         var rect = legend.append("g");
 
         var colorScale = rect.append("rect")
-            .attr("x", padding.left)
-            .attr("y", 0)
+            .attr("x", pos[0])
+            .attr("y", pos[1])
             .attr("width", width-padding.left)
             .attr("height", height)
-            .css("fill","url(#gradlegend" + gradientID + ")");
+            .style("fill","url(#gradlegend" + gradientID + ")");
 
-        // legend.append("text")
-        //     .attr("x", 0)
-        //     .attr("y", height/2 + 5)
-        //     .css("fill", "#222")
-        //     .css("font-size", ".9em")
-        //     .text(p4.io.printformat(".2s")(domain[0]));
-        //
-        // legend.append("text")
-        //     .attr("x", width + padding.left + 5)
-        //     .attr("y", height/2 + 5)
-        //     .css("fill", "#222")
-        //     .css("font-size", ".9em")
-        //     .text(p4.io.printformat(".2s")(domain[1]));
+        if(!noLabel) {
+            legend.append("text")
+                .attr("x", pos[0] - padding.left)
+                .attr("y", pos[1] + height/2 + 5)
+                .style("fill", "#222")
+                .style("text-anchor", 'middle')
+                // .style("font-size", ".9em")
+                .text(printformat('2s')(domain[0]));
+
+            legend.append("text")
+                .attr("x", pos[0] + width)
+                .attr("y", pos[1] + height/2 + 5)
+                .style("fill", "#222")
+                .style("text-anchor", 'middle')
+                // .style("font-size", ".9em")
+                .text(printformat('2s')(domain[1]));
+        }
+
+
+        if(option.title) {
+            legend.append("g")
+              .append("text")
+                .attr("y", pos[1] - padding.top)
+                .attr("x", pos[0] + width/2)
+                .attr("dy", "1em")
+                .style("text-anchor", "middle")
+                .text(option.title);
+        }
 
         // var xAxis = new Axis({
         //     dim: "x",
@@ -106,18 +128,7 @@ define(['i2v/scale', 'i2v/svg', 'i2v/format', 'i2v/svg/axis'], function(Metric, 
         //
         // legend.appendChild(xAxis);
 
-        if(option.title) {
-            legend.append("g")
-              .append("text")
-                .attr("y", padding.top/2)
-                .attr("x", padding.left)
-                .attr("dy", "1em")
-                .css("text-anchor", "middle")
-                .css("font-size", "0.9em")
-                .text(option.title);
-        }
-
-        rect.translate(padding.left, padding.top);
+        // rect.translate(padding.left, padding.top);
 
         // legend.update = function(newDomain, newColors) {
         //

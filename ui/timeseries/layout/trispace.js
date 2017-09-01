@@ -6,10 +6,10 @@ define(function(require){
         ButtonGroup = require('davi/button-group'),
         ProgressBar = require('davi/progress');
 
-    return function() {
+    return function(container) {
         var trispace = new Layout({
             margin: 10,
-            container: 'page-main',
+            container: container,
             cols: [
                 {
                     width: 0.42,
