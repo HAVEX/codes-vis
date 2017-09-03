@@ -14,7 +14,7 @@ define(function(require){
             width = option.width || 200,
             height = option.height || 20,
             pos = option.pos ||[0, 0],
-            padding = option.padding || {left: 20, right: 20, top: 20, bottom: 0},
+            padding = option.padding || {left: 15, right: 15, top: 20, bottom: 0},
             vmap = option.vmap || {},
             noLabel = option.nolabel || false,
             colors = option.colors || ['#eee', 'steelblue'],
@@ -42,7 +42,7 @@ define(function(require){
         }
 
         function linearDomain(domain, n){
-            var step = (domain[1] - domain[0])/(n-1),
+            var step = (domain[1] - domain[0])/(n),
                 res = [];
             for(var i = domain[0]; i<=domain[1]; i+=step) {
                 res.push(i);
@@ -84,18 +84,18 @@ define(function(require){
 
         if(!noLabel) {
             legend.append("text")
-                .attr("x", pos[0] - padding.left)
+                .attr("x", pos[0] - 5)
                 .attr("y", pos[1] + height/2 + 5)
                 .style("fill", "#222")
-                .style("text-anchor", 'middle')
+                .style("text-anchor", 'end')
                 // .style("font-size", ".9em")
                 .text(printformat('2s')(domain[0]));
 
             legend.append("text")
-                .attr("x", pos[0] + width)
+                .attr("x", pos[0] + width - padding.left + 5)
                 .attr("y", pos[1] + height/2 + 5)
                 .style("fill", "#222")
-                .style("text-anchor", 'middle')
+                .style("text-anchor", 'begin')
                 // .style("font-size", ".9em")
                 .text(printformat('2s')(domain[1]));
         }

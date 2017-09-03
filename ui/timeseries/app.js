@@ -12,8 +12,31 @@ define(function(require) {
         lineChart = require('i2v/charts/lineChart'),
         format = require('i2v/format')('.2s');
 
-    const ROUTER_PER_GROUP = 10,
-        TERMINAL_PER_ROUTER = 5;
+    var network = {};
+    network.transform = require('../network/transform');
+    network.vis = require('../network/circularvis');
+
+
+    var TERMINAL_PER_ROUTER,
+        ROUTER_PER_GROUP,
+        LOCAL_LINK_COUNT,
+        GLOBAL_LINK_COUNT,
+        GROUP_TOTAL,
+        ROUTER_TOTAL;
+
+    function calcTargetRouter(group_id, router_id, port) {
+        var first = router_id % ROUTER_TOTAL;
+        var target_grp = first + port * ROUTER_PER_GROUP;
+        if(target_grp == group_id) {
+            target_grp = GROUP_TOTAL - 1;
+        }
+        var my_pos = group_id % ROUTER_PER_GROUP;
+        if(group_id == GROUP_TOTAL - 1) {
+            my_pos = target_grp % ROUTER_PER_GROUP;
+        }
+        var target_pos =  target_grp * ROUTER_PER_GROUP + my_pos;
+        return target_pos;
+    }
 
     return function(arg) {
         var eva = {},
@@ -57,6 +80,21 @@ define(function(require) {
             }
         })
 
+
+        network.visSetting = {
+            container: '#panel-projection-body',
+            width: views.projection.innerWidth,
+            height:  views.projection.innerHeight,
+            padding: 0,
+        };
+
+        network.visSpec = {};
+        network.data = null;
+        network.updateVis = function() {
+            views.projection.body.innerHTML = '';
+            if(network.data !== null)
+                network.vis(network.visSetting, network.visSpec, network.data);
+        }
         // ui.style.visibility = 'hidden';
         // dataPanel.style.margin = '50px auto';
         var fileList;
@@ -65,6 +103,9 @@ define(function(require) {
             networkData = {};
         var progressBars = [],
             startButton;
+
+
+
 
         var jobMapping = {};
 
@@ -76,6 +117,24 @@ define(function(require) {
 
         fileList.style.display = 'none';
 
+        eva.update = function(visSpec, input, metadata) {
+            if(typeof metadata != 'undefined'){
+                TERMINAL_PER_ROUTER = metadata.terminals / metadata.routers;
+                ROUTER_PER_GROUP = metadata.routers / metadata.groups;
+                LOCAL_LINK_COUNT = metadata.localLinkPerRouter || ROUTER_PER_GROUP;
+                GLOBAL_LINK_COUNT = metadata.globalLinkPerRouter || TERMINAL_PER_ROUTER;
+                GROUP_TOTAL = TERMINAL_PER_ROUTER * ROUTER_PER_GROUP + 1;
+                ROUTER_TOTAL = ROUTER_PER_GROUP * GROUP_TOTAL;
+            }
+
+            if(network.data === null)
+                network.data = network.transform(input);
+
+            // views.dataPanel.style.display = 'block';
+            fileList.tbody.innerHTML = '';
+            network.visSpec = visSpec;
+            network.updateVis();
+        }
 
         var fileUploadButton = new Button({
             label: ' Open Files ',
@@ -134,11 +193,6 @@ define(function(require) {
         fileUploadButton.style.margin = '5px';
         views.dataPanel.append(fileUploadButton);
 
-        eva.reset = function() {
-            views.dataPanel.style.display = 'block';
-            fileList.tbody.innerHTML = '';
-        }
-
         var terminal = {
             struct: {
                 terminal_id         : "int",
@@ -179,11 +233,11 @@ define(function(require) {
 
                 var start = new Date();
                 var result = gpuMemCache.terminals
-                .derive({
-                    group_id: "floor(terminal_id/50.0)",
-                    // avg_hop: "total_hops/packets_finished"
-                })
-                .register('selectTimeRange')
+                // .derive({
+                //     group_id: "floor(terminal_id/50.0)",
+                //     // avg_hop: "total_hops/packets_finished"
+                // })
+                // .register('selectTimeRange')
                 .aggregate({
                     $group: ["terminal_id"],
                     totalHopCount: {$sum: "avg_hop"},
@@ -207,13 +261,13 @@ define(function(require) {
                 var features = ['group_id', 'avgPacketLatency', 'saturation', 'totalDataSize', 'terminal_id'];
 
                 var result = gpuMemCache.terminals
-                .resume('selectTimeRange')
+                .head()
                 // .filter({
                 //     timestamp: [0, 1600000]
                 // })
                 .aggregate({
                     $group: ["timestamp"],
-                    // totalHopCount: {$sum: "avg_hop"},
+                    // hops: {$sum: "avg_hop"},
                     packet_latency: {$sum: "avg_packet_latency"},
                     data_size: {$sum: "data_size"},
                     saturation: {$sum: "busy_time"}
@@ -308,7 +362,7 @@ define(function(require) {
                 lines.forEach(function(line, li){
                     var row = line.split(','),
                         routerId = row[0],
-                        ts = row[row.length-1],
+                        ts = row.pop(),
                         saturations = row.slice(1, portTotal+1),
                         traffics = row.slice(portTotal+1, portTotal*2+1);
 
@@ -360,6 +414,8 @@ define(function(require) {
                 })
                 .result('row');
 
+                console.log(result);
+
                 var linkTypes = ['local', 'global', 'terminal'];
 
                 var linkData = new Array(linkTypes.length);
@@ -381,9 +437,11 @@ define(function(require) {
                         color: 'type',
                     },
                     onchange: function(d) {
-                        updateTerminals(d.x);
-                        var routers = updateRouters(d.x);
-                        console.log(routers);
+                        var terminals = updateTerminals(d.x);
+                        var data = updateNetworkLinks(d.x);
+                        data.terminals = terminals;
+                        network.data =  network.transform(data);
+                        network.updateVis();
 
                     }
                 })
@@ -452,7 +510,7 @@ define(function(require) {
 
         function updateTerminals(timeRange) {
             networkData.terminals = gpuMemCache.terminals
-            .resume('selectTimeRange')
+            .head()
             .filter({
                 timestamp: timeRange
             })
@@ -463,12 +521,15 @@ define(function(require) {
                 avg_packet_latency: {$sum: "avg_packet_latency"},
                 packets_finished: {$sum: "packets_finished"},
                 data_size: {$sum: "data_size"},
-                busy_time: {$sum: "busy_time"},
+                sat_time: {$sum: "busy_time"},
             })
             .result('row');
 
             networkData.terminals.forEach(function(d, i){
-                d.terminal_id = i;
+                d.router_id = Math.floor(d.terminal_id/TERMINAL_PER_ROUTER);
+                d.router_rank = Math.floor(d.router_id/ROUTER_PER_GROUP);
+                d.router_port = d.terminal_id % TERMINAL_PER_ROUTER;
+                d.group_id = Math.floor(d.terminal_id/TERMINAL_PER_ROUTER/ROUTER_PER_GROUP);
             })
             return networkData.terminals;
         }
@@ -480,7 +541,7 @@ define(function(require) {
                 timestamp: timeRange
             })
             .aggregate({
-                $group: ["port","router_id"],
+                $group: ["port", "router_id"],
                 totalTraffic: {$sum: "traffic"},
                 totalSaturation: {$sum: "saturation"},
             })
@@ -495,6 +556,52 @@ define(function(require) {
             .execute(aggr);
 
             return routers;
+        }
+
+        function getLink(d) {
+            var link = {
+                group_id: Math.floor(d.router_id / ROUTER_PER_GROUP),
+                router_rank: d.router_id % ROUTER_PER_GROUP,
+                router_id: d.router_id,
+                router_port: d.port,
+                sat_time: d.sat_time,
+                traffic: d.traffic
+            };
+
+            link.target_router = calcTargetRouter(link.group_id, link.router_rank, link.router_port);
+
+            return link;
+        }
+
+        function updateNetworkLinks(timeRange) {
+            var aggr = gpuMemCache.routers
+            .head()
+            .filter({
+                timestamp: timeRange
+            })
+            .aggregate({
+                $group: ["port", "router_id"],
+                traffic: {$sum: "traffic"},
+                sat_time: {$sum: "saturation"},
+            })
+            .result('row');
+
+            var localLinks = aggr
+                .filter(function(d){
+                    return d.port < LOCAL_LINK_COUNT;
+                })
+                .map(getLink);
+
+            var globalLinks = aggr
+                .filter(function(d){
+                    return (d.port >= LOCAL_LINK_COUNT && d.port < LOCAL_LINK_COUNT+GLOBAL_LINK_COUNT);
+                })
+                .map(getLink);
+
+            return {
+                localLinks: localLinks,
+                globalLinks: globalLinks
+            };
         }
 
         function loadDataFromFile(file, fileId) {
@@ -536,6 +643,7 @@ define(function(require) {
                 });
             }
         }
+
 
         return eva;
     }

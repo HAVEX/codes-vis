@@ -20,7 +20,7 @@ define(function(){
                         size: 'traffic',
                         color: 'sat_time'
                     },
-                    colors: 'PuOr'
+                    colors: ["#eee", 'purple']
                 },
                 {
                     aggregate: 'router_port',
@@ -29,6 +29,7 @@ define(function(){
                         size: 'data_size',
                         color: 'sat_time'
                     },
+                    colors: ["#eee", 'teal']
                 }
             ],
             'Dragonfly inter-group': [
@@ -40,7 +41,7 @@ define(function(){
                         size: 'traffic',
                         color: 'sat_time'
                     },
-                    colors: 'Blues'
+                    colors: ["#eee", 'purple'],
                 },
                 {
                     aggregate: 'router_port',
@@ -49,7 +50,7 @@ define(function(){
                         size: 'traffic',
                         color: 'sat_time'
                     },
-                    colors: 'PuOr'
+                    colors: ["steelblue", 'red'],
                 },
                 {
                     project: 'terminals',
@@ -58,6 +59,7 @@ define(function(){
                         size: 'data_size',
                         color: 'sat_time'
                     },
+                    colors: ["#eee", 'teal']
                 }
             ]
         }

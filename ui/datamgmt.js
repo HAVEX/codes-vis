@@ -80,7 +80,7 @@ define(function(require) {
             loadData(datasets[dsID])
             .then(function(data) {
                 dataManager.data = data;
-                dataManager.onselect(data);
+                dataManager.onselect(data, datasets[dsID]);
             });
         }
 

@@ -20,6 +20,7 @@ define(function(require) {
     return function(arg) {
         var network = {},
             data = arg.data|| null,
+            onUpdate = arg.onupdate || arg.onUpdate || function() {},
             container = arg.container || document.body;
 
         var layoutMain = new Layout({
@@ -51,14 +52,14 @@ define(function(require) {
             container: layoutMain.cell('network-view'),
             id: "panel-network",
             title: "Network Analysis",
-            header: {height: 0.035, style: {backgroundColor: '#F4F4F4'}}
+            header: {height: 0.05, style: {backgroundColor: '#F4F4F4'}}
         });
 
         views.editor = new Panel({
             container: layoutMain.cell('spec-view'),
             id: "panel-spec",
             title: "Specification",
-            header: {height: 0.035, style: {backgroundColor: '#F4F4F4'}}
+            header: {height: 0.05, style: {backgroundColor: '#F4F4F4'}}
         });
 
         // views.info = new Panel({
@@ -158,15 +159,14 @@ define(function(require) {
                 else
                     visSpec = specGUI.getSpec();
 
-                console.log(visSpec);
                 views.network.clear();
                 circularVis(config, visSpec, data);
+                network.onUpdate(visSpec);
              }
         });
         views.editor.header.append(updateButton);
 
         network.update = function(input) {
-            console.log(input);
             data = transform(input);
             views.network.clear();
             visSpec = JSON.parse(editor.getValue());
@@ -176,6 +176,8 @@ define(function(require) {
         network.getSpec = function() {
             return visSpec;
         }
+
+        network.onUpdate = onUpdate;
 
         return network;
     }

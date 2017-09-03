@@ -13,11 +13,11 @@ define(function(require){
             cols: [
                 {
                     id: "col-left",
-                    width: 0.40,
+                    width: 0.45,
                 },
                 {
                     id: "col-right",
-                    width: 0.6,
+                    width: 0.55,
                 },
             ]
         });

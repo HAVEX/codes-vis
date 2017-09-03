@@ -65,21 +65,21 @@ define(function(require) {
             id: "panel-terminals",
             title: "Terminals",
             padding: 20,
-            header: {height: 0.035, style: {backgroundColor: '#F4F4F4'}}
+            header: {height: 0.05, style: {backgroundColor: '#F4F4F4'}}
         });
         views.localLinks = new Panel({
             container: board.cell('local-links'),
             id: "panel-local-links",
             title: "Local Links",
             padding: 20,
-            header: {height: 0.035, style: {backgroundColor: '#F4F4F4'}}
+            header: {height: 0.05, style: {backgroundColor: '#F4F4F4'}}
         });
         views.globalLinks = new Panel({
             container: board.cell('global-links'),
             id: "panel-global-links",
             title: "Global Links",
             padding: 20,
-            header: {height: 0.035, style: {backgroundColor: '#F4F4F4'}}
+            header: {height: 0.05, style: {backgroundColor: '#F4F4F4'}}
         });
         stats.update = function(data) {
             Object.keys(views).forEach(function(vk){

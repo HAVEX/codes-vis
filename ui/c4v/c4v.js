@@ -72,11 +72,11 @@ define(function(require){
                 colorLegend({
                     container: container,
                     colors: s.colors,
-                    height: height / layers.length / 6 ,
-                    width: outerRadius / 2,
+                    height: Math.min(50, outerRadius/2 / layers.length) ,
+                    width: width/2 - outerRadius / 2 - padding * 4,
                     title: s.project + ' (' + ((s.vmap) ? s.vmap.color : null) + ')',
                     domain: colorDomain,
-                    pos: [outerRadius/2+ padding*4, padding*4 + outerRadius/2 + outerRadius/2 / (layers.length-1) * si]
+                    pos: [outerRadius/2 + padding*4, padding*2 + outerRadius/2 + outerRadius/2 / (layers.length-1) * si]
                 })
             }
 

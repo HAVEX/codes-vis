@@ -73,6 +73,7 @@ define(function(require) {
     }
 
     return function circularVis(config, spec, data) {
+        console.log('SPEC((((()))))', spec);
 
         var entity = spec[0].project || 'global_links',
             aggrAttr = spec[0].aggregate || 'router_rank',
@@ -114,6 +115,7 @@ define(function(require) {
         spec[0].size = Object.keys(spec[0].vmap).length;
 
         spec.slice(1).forEach(function(s){
+            if(!s.vmap) return;
             var entity = s.project,
                 aggrAttr = s.aggregate,
                 metrics = s.metrics || METRICS[entity];
@@ -129,12 +131,14 @@ define(function(require) {
             s.size = Object.keys(spec[0].vmap).length;
         })
 
-        spec.push({
-            type: 'text',
-            data: result.map(function(d){return d[aggrAttr]}),
-            size: 1,
-            prefix: LABLE_PREFIX[aggrAttr] || ''
-        });
+        if(spec[spec.length-1].type !== 'text') {
+            spec.push({
+                type: 'text',
+                data: result.map(function(d){return d[aggrAttr]}),
+                size: 1,
+                prefix: LABLE_PREFIX[aggrAttr] || ''
+            });
+        }
 
         return hcvis({
             config: config,

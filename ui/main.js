@@ -50,6 +50,9 @@ define(function(require) {
 
         boards.network = network({
             container: 'page-network',
+            onupdate: function(spec) {
+
+            }
         });
 
         boards.tseries = timeseries({
@@ -58,10 +61,15 @@ define(function(require) {
 
         dataMagement({
             container: 'data-list',
-            onselect: function(d) {
-                boards.network.update(d);
-                boards.stats.update(d);
-                boards.tseries.reset();
+            onselect: function(data, metadata) {
+                boards.network.update(data);
+                boards.stats.update(data);
+                var visSpec = boards.network.getSpec();
+                boards.network.onUpdate = function(d) {
+                    console.log(d);
+                    boards.tseries.update(d, data, metadata);
+                }
+                boards.tseries.update(visSpec, data, metadata);
                 $('.ui.large.modal').modal('toggle');
             },
             oncancel: function(d) {

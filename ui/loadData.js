@@ -8,7 +8,7 @@ define(function(require){
 
     return function(args, callback) {
         const DATASET = '/data/' + args.path,
-            TERMINAL_PER_ROUTER = args.terminals / args.routers;
+            TERMINAL_PER_ROUTER = args.terminals / args.routers,
             ROUTER_PER_GROUP = args.routers / args.groups,
             LOCAL_LINK_COUNT = args.localLinkPerRouter || ROUTER_PER_GROUP,
             GLOBAL_LINK_COUNT = args.globalLinkPerRouter || TERMINAL_PER_ROUTER,

@@ -24,11 +24,11 @@ var template = '' +
   '</table>' +
 
   '<div class="fields">' +
-    '<div class="six wide field" style="text-align: right;">' +
-      '<button id="add-layer" class="ui button blue">Add Layer</button>' +
+    '<div class="eight wide field" style="text-align: right;">' +
+      '<button id="add-layer" class="ui button green">Add Layer</button>' +
       '<button id="remove-layer" class="ui button red">Remove Layer</button>' +
     '</div>' +
-    '<div class="eight wide field ui action input">' +
+    '<div class="six wide field ui action input">' +
       '<input type="text" placeholder="Name this config...">' +
       '<button id="save-spec" class="ui button green">Save</button>' +
     '</div>' +
@@ -45,7 +45,7 @@ define(function(require){
         ["#eee", 'steelblue'],
         ["#eee", 'purple'],
         ["#eee", 'teal'],
-        ["steelblue", '#E00'],
+        ["steelblue", 'red'],
         'YlGn',
         'Reds',
         'Blues',
@@ -55,7 +55,6 @@ define(function(require){
     var entities = [
         'global_links',
         'local_links',
-        // 'router',
         'terminals'
     ];
 
@@ -75,7 +74,15 @@ define(function(require){
         'sat_time',
         'router_port',
         'router_rank',
+        'job_id'
     ];
+
+    var metrics = {
+        local_links: linkMetrics,
+        global_links: linkMetrics,
+        terminals: terminalMetrics,
+    }
+
     return function(arg) {
         var options = arg || {},
             container = options.container
@@ -87,17 +94,16 @@ define(function(require){
 
         var aggrAttr = 'router_rank';
 
-        var metrics = {
-            local_links: linkMetrics,
-            global_links: linkMetrics,
-            terminals: terminalMetrics,
-        }
+
 
         function updateSelection(sel, options, selectedAttr) {
             var index = (options.indexOf(selectedAttr) > -1) ? options.indexOf(selectedAttr) : 0;
             sel.html('');
+            sel.dropdown();
             options.forEach(function(opt, ii){
-                sel.append($('<option/>').attr('value', opt).text(opt));
+                var item = $('<option/>');
+                // if(ii == index) item.addClass('active selected');
+                sel.append(item.attr('value', opt).text(opt));
             })
             sel.dropdown('set value', options[index]);
             sel.dropdown('set text', options[index]);
@@ -136,8 +142,8 @@ define(function(require){
             var div1 = $('<div/>').addClass('two fields'),
                 sizeField = $('<div/>').addClass('field'),
                 colorField = $('<div/>').addClass('field'),
-                size = $('<select/>').addClass('ui fluid dropdown').attr('vmap', 'size'),
-                color = $('<select/>').addClass('ui fluid dropdown').attr('vmap', 'color');
+                size = $('<select/>').addClass('ui fluid dropdown'),
+                color = $('<select/>').addClass('ui fluid dropdown');
 
             sizeField.append($('<label/>').text('Size'));
             sizeField.append(size);
@@ -147,14 +153,15 @@ define(function(require){
             var div2 = $('<div/>').addClass('two fields'),
                 cxField = $('<div/>').addClass('field'),
                 cyField = $('<div/>').addClass('field'),
-                cx= $('<select/>').addClass('ui fluid dropdown').attr('vmap', 'x'),
-                cy = $('<select/>').addClass('ui fluid dropdown').attr('vmap', 'y');
+                cx= $('<select/>').addClass('ui fluid dropdown'),
+                cy = $('<select/>').addClass('ui fluid dropdown');
 
             cxField.append($('<label/>').text('Angular (x)'));
             cxField.append(cx);
             cyField.append($('<label/>').text('Radial (y)'));
             cyField.append(cy);
 
+            updateDropDown(projectEntity);
             function updateDropDown(en) {
                 updateSelection(size, metrics[en], sizeAttr);
                 updateSelection(color, metrics[en], colorAttr);
@@ -167,7 +174,6 @@ define(function(require){
                 }
             }
 
-            updateDropDown(entities[0]);
 
             checkbox.append(boxLabel);
             checkbox.append(boxInput);
@@ -181,6 +187,7 @@ define(function(require){
             div1.append(colorField, sizeField);
             div2.append(cxField, cyField);
             td2.append(div1, div2);
+
 
             var colorMenuDiv = $('<div/>')
                 .addClass('ui fluid selection dropdown')
@@ -220,14 +227,15 @@ define(function(require){
 
             tr.append(td1, td2, td3);
             $('#specTable').append(tr);
+
+            //
+
             updateSelection(projection, entities, projectEntity);
-            updateDropDown(projectEntity);
 
             projection.change(function() {
-                var v = $(this).val();
+                var v = projection.val();
                 updateDropDown(v);
             })
-
             function getLayerSpec(id) {
                 var spec = {},
                     sizeAttr = size.val(),
@@ -272,14 +280,10 @@ define(function(require){
             });
         }
 
-        updateSelection(
-            $('#aggregation-attr'),
-            ['group_id', 'router_rank', 'router_port', 'job_id', 'traffic', 'sat_time']
-        );
+
 
         $('#aggregation-attr').change(function(){
             aggrAttr = $(this).val();
-            console.log(aggrAttr);
         })
 
         $("#add-layer").click(function(){
@@ -302,9 +306,11 @@ define(function(require){
         }
 
         function createGUI(specs) {
-            $('#aggregation-attr').dropdown('set value', specs[0].aggregate);
-            $('#aggregation-attr').dropdown('set text', specs[0].aggregate);
-            $('#aggregation-attr').dropdown('refresh');
+            updateSelection(
+                $('#aggregation-attr'),
+                ['group_id', 'router_rank', 'job_id', 'traffic', 'sat_time'],
+                specs[0].aggregate
+            );
             aggrAttr = specs[0].aggregate;
             clearGUI();
             specs.forEach(function(spec, si){
