@@ -34,8 +34,8 @@ define(function(require){
             margin: 0,
             container: cols.cell('col-right'),
             rows: [
-                { id: 'timelineView', height: 0.3},
-                { id: 'detailView', height: 0.7}
+                { id: 'detailView', height: 0.7},
+                { id: 'timelineView', height: 0.3}
             ]
         })
 

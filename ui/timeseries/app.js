@@ -523,6 +523,15 @@ define(function(require) {
                 data_size: {$sum: "data_size"},
                 sat_time: {$sum: "busy_time"},
             })
+            .visualize({
+                id: 'stat-plot',
+                mark: "line",
+                y: ["data_size", "avg_packet_latency", "busy_time", "terminal_id"],
+                // x: "timestamp",
+                // perceptual: true,
+                color: 'teal',
+                alpha: 0.1
+            })
             .result('row');
 
             networkData.terminals.forEach(function(d, i){
@@ -575,6 +584,42 @@ define(function(require) {
 
         function updateNetworkLinks(timeRange) {
             var aggr = gpuMemCache.routers
+            .head()
+            .filter({
+                type: ['global', 'global'],
+                timestamp: timeRange
+            })
+            .aggregate({
+                $group: ["link_id"],
+                totalTraffic: {$sum: "traffic"},
+                totalSaturation: {$sum: "saturation"},
+            })
+            .visualize({
+                id: "detail-global-link",
+                mark: "point",
+                x: "totalTraffic",
+                y: "totalSaturation",
+                color: 'purple',
+                alpha: 0.5
+            })
+            .head()
+            .filter({
+                type: ['local', 'local'],
+                timestamp: timeRange
+            })
+            .aggregate({
+                $group: ["link_id"],
+                totalTraffic: {$sum: "traffic"},
+                totalSaturation: {$sum: "saturation"},
+            })
+            .visualize({
+                id: "detail-local-link",
+                mark: "point",
+                x: "totalTraffic",
+                y: "totalSaturation",
+                color: 'steelblue',
+                alpha: 0.5
+            })
             .head()
             .filter({
                 timestamp: timeRange

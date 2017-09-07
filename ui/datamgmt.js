@@ -95,6 +95,15 @@ define(function(require) {
         var actionDiv = document.createElement('div');
         actionDiv.className = "actions";
 
+        var fileUploadButton = new Button({
+            label: ' Open Files ',
+            types: ['primary', 'center'],
+            icon: 'folder open',
+            fileInput: {id: 'testFileUpload', onchange:function() {}}
+        });
+
+        actionDiv.append(fileUploadButton);
+
         actionDiv.append(new Button({
             label: 'Cancel',
             types: ['orange'],
