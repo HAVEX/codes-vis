@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="/semantic/dist/semantic.min.css">
+    <!-- <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../../favicon.ico"> -->
+    <style>
+    body {
+        overflow: hidden;
+    }
+    #upload-files {
+        width: 100%;
+        margin: 0 auto;
+        padding: 20px;
+        text-align: center;
+    }
+    </style>
+    <title>CODES-VIS</title>
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+
+    <script src="npm/requirejs/require.js"></script>
+    <script src="/semantic/dist/semantic.js"></script>
+  </head>
+  <body>
+
+      <div class="ui large modal" id="page-data">
+        <div class="header"><h2>CODES-VIS CoAnalysis</h2></div>
+        <div id="upload-files"></div>
+      </div>
+
+      <div id="main"></div>
+      <script>
+          require(['app'], function(main){
+              main({
+                  container: 'main'
+              });
+          })
+          $('.ui.large.modal').modal({closable: false}).modal('toggle');
+      </script>
+  </body>
+</html>

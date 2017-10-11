@@ -5,7 +5,7 @@ var fs = require('fs'),
     app = express(),
     server = require('http').Server(app);
 
-var port = process.env.PORT || 8100,
+var port = process.env.PORT || 8000,
     host = process.env.HOST || "localhost";
 
 console.log("initializing server ");
@@ -43,7 +43,7 @@ app.use("/semantic", express.static('semantic'));
 app.use("/data", express.static('data'));
 app.use("/models", express.static('models'));
 app.use("/npm", express.static('node_modules'));
-app.use(express.static('ui'));
+app.use(express.static('app-coanalysis'));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));

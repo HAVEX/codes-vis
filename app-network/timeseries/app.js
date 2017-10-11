@@ -16,7 +16,6 @@ define(function(require) {
     network.transform = require('../network/transform');
     network.vis = require('../network/circularvis');
 
-
     var TERMINAL_PER_ROUTER,
         ROUTER_PER_GROUP,
         LOCAL_LINK_COUNT,
